@@ -10,10 +10,20 @@ import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
 import ImagePopup from "./ImagePopup";
 import DeleteCardPopup from "./DeleteCardPopup";
+import {Route, Switch} from "react-router-dom";
+import Login from "./Login";
+import Register from "./Register";
+import ProtectedRoute from "./ProtectedRoute";
+
+import * as Auth from '../utils/Auth';
 
 function App() {
     const [currentUser, setCurrentUser] = useState({});
     const [currentCard, setCurrentCard] = useState([]);
+
+    // const [loggedIn, setLoggetIn] = useState(false)
+    const [email, setEmail] = useState('');
+
     const [cardToDelete, setCardToDelete] = useState()
 
     const [selectorCard, setSelectorCard] = useState(null)
@@ -55,6 +65,10 @@ function App() {
             })
             .catch(err => console.log(`Ошибка в App.js при запросе getUserInfo ${err}`))
     }, []);
+
+    React.useEffect(() => {
+        tokenCheck()
+    }, [])
 
     const handleCardLike = (card) => {
         // Снова проверяем, есть ли уже лайк на этой карточке
@@ -105,21 +119,48 @@ function App() {
         setCardToDelete(card)
     }
 
+    const handleRegister = (password, email) => {
+        Auth.register(password, email)
+    }
+
+    function tokenCheck() {
+        if (localStorage.getItem('jwt')){
+            let jwt = localStorage.getItem('jwt');
+            Auth.getContent(jwt).then((res) => {
+                if (res){
+                    let userData = {
+                        email: res.email
+                    }
+                    setEmail(userData)
+                    // setLoggedIn(true);
+
+                }
+            });
+        }
+    }
+
 
     return (
         <CurrentUserContext.Provider value={currentUser}>
             <div className="page">
                 <div className="page__container">
-                    <Header/>
-                    <Main
-                        onEditProfile={handleEditProfileClick}
-                        onAddPlace={handleAddPlaceClick}
-                        onEditAvatar={handleEditAvatarClick}
-                        onCardClick={handleCardClick}
-                        cards={currentCard}
-                        onCardLike={handleCardLike}
-                        onCardDelete={handleCardToDelete}
-                    />
+                    <Header email={email}/>
+                    <Switch>
+                        <ProtectedRoute exact path='/'
+                                        component={Main}
+                                        onEditProfile={handleEditProfileClick}
+                                        onAddPlace={handleAddPlaceClick}
+                                        onEditAvatar={handleEditAvatarClick}
+                                        onCardClick={handleCardClick}
+                                        cards={currentCard}
+                                        onCardLike={handleCardLike}
+                                        onCardDelete={handleCardToDelete}
+                        />
+
+                        <Route path='/sign-in'><Login/></Route>
+                        <Route path='/sign-up'><Register onRegister={handleRegister}/></Route>
+
+                    </Switch>
                     <Footer/>
                 </div>
 
