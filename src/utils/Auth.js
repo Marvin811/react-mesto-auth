@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://auth.nomoreparties.co/';
+export const BASE_URL = 'https://auth.nomoreparties.co';
 
 const checkResponse = (response) => {
     if (response.ok) {
@@ -7,7 +7,7 @@ const checkResponse = (response) => {
 }
 
 export const register = (password, email) => {
-    return fetch(`${BASE_URL}/signin`, {
+    return fetch(`${BASE_URL}/signup`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -17,8 +17,8 @@ export const register = (password, email) => {
     })
         .then(checkResponse)
 }
-export const authorize = ({password, email}) => {
-    return fetch(`${BASE_URL}/signup`,{
+export const authorize = (password, email) => {
+    return fetch(`${BASE_URL}/signin`,{
         method: 'POST',
         headers: {
             'Accept' : 'application/json',

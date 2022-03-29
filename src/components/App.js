@@ -10,7 +10,7 @@ import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
 import ImagePopup from "./ImagePopup";
 import DeleteCardPopup from "./DeleteCardPopup";
-import {Route, Switch} from "react-router-dom";
+import {Route, Switch, useHistory} from "react-router-dom";
 import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
@@ -21,6 +21,7 @@ function App() {
     const [currentUser, setCurrentUser] = useState({});
     const [currentCard, setCurrentCard] = useState([]);
 
+    const history = useHistory();
     // const [loggedIn, setLoggetIn] = useState(false)
     const [email, setEmail] = useState('');
 
@@ -119,26 +120,45 @@ function App() {
         setCardToDelete(card)
     }
 
-    const handleRegister = (password, email) => {
-        Auth.register(password, email)
-    }
-
     function tokenCheck() {
-        if (localStorage.getItem('jwt')){
-            let jwt = localStorage.getItem('jwt');
-            Auth.getContent(jwt).then((res) => {
-                if (res){
+        if (localStorage.getItem('token')) {
+            let token = localStorage.getItem('token');
+            Auth.getContent(token).then((res) => {
+                if (res) {
                     let userData = {
                         email: res.email
                     }
                     setEmail(userData)
-                    // setLoggedIn(true);
 
                 }
             });
         }
     }
 
+    const handleRegister = (password, email) => {
+        Auth.register(password, email)
+            .then(data => {
+                if (data) {
+                    history.push('/sign-up')
+                }
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    }
+    const handleLogin = (password, email) => {
+        Auth.authorize(password, email)
+            .then(data => {
+                if (data.token) {
+                    setEmail(email);
+                    localStorage.setItem('token', data.token);
+                    history.push('/')
+                }
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    }
 
     return (
         <CurrentUserContext.Provider value={currentUser}>
@@ -157,7 +177,7 @@ function App() {
                                         onCardDelete={handleCardToDelete}
                         />
 
-                        <Route path='/sign-in'><Login/></Route>
+                        <Route path='/sign-in'><Login onLogin={handleLogin}/></Route>
                         <Route path='/sign-up'><Register onRegister={handleRegister}/></Route>
 
                     </Switch>
