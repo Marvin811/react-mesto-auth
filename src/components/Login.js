@@ -15,7 +15,7 @@ function Login({onLogin}) {
         if(!email || !password){
             return
         }
-        onLogin(password, email)
+        onLogin(email, password)
     }
 
     return (
@@ -38,7 +38,7 @@ function Login({onLogin}) {
                         className='entrance__input'
                         required
                         name='password'
-                        type='text'
+                        type='password'
                         placeholder="Пароль"/>
                     <span className="entrance__error-visible" id="name-error"></span>
                     <button className="button entrance__save-button" type="submit">Войти</button>

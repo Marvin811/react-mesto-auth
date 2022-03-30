@@ -10,7 +10,7 @@ import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
 import ImagePopup from "./ImagePopup";
 import DeleteCardPopup from "./DeleteCardPopup";
-import {Route, Switch, useHistory} from "react-router-dom";
+import {Route, Switch} from "react-router-dom";
 import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
@@ -21,8 +21,8 @@ function App() {
     const [currentUser, setCurrentUser] = useState({});
     const [currentCard, setCurrentCard] = useState([]);
 
-    const history = useHistory();
-    // const [loggedIn, setLoggetIn] = useState(false)
+    // const history = useHistory();
+    const [loggedIn, setLoggetIn] = useState(false)
     const [email, setEmail] = useState('');
 
     const [cardToDelete, setCardToDelete] = useState()
@@ -37,9 +37,10 @@ function App() {
     const handleEditAvatarClick = () => setIsEditAvatarPopupOpen(true);
     const handleEditProfileClick = () => setIsEditProfilePopupOpen(true);
     const handleAddPlaceClick = () => setIsAddPlacePopupOpen(true);
+    const handleLoggedIn = () => setLoggetIn(true);
 
-
-    const handleCardClick = (card) => setSelectorCard(card);
+    const
+    handleCardClick = (card) => setSelectorCard(card);
 
     const closeAllPopups = () => {
         setIsAddPlacePopupOpen(false);
@@ -70,6 +71,8 @@ function App() {
     React.useEffect(() => {
         tokenCheck()
     }, [])
+
+
 
     const handleCardLike = (card) => {
         // Снова проверяем, есть ли уже лайк на этой карточке
@@ -119,46 +122,47 @@ function App() {
         setIsDeleteCardPopupOpen(true)
         setCardToDelete(card)
     }
-
+    // const handleRegister = (password, email) => {
+    //     return Auth.register(password, email)
+    //         .catch(err => {
+    //             console.log(err)
+    //         })
+    // }
     function tokenCheck() {
-        if (localStorage.getItem('token')) {
-            let token = localStorage.getItem('token');
-            Auth.getContent(token).then((res) => {
-                if (res) {
-                    let userData = {
-                        email: res.email
-                    }
-                    setEmail(userData)
+        if (localStorage.getItem('token')){
+            const jwt = localStorage.getItem('token');
+            Auth.getContent(jwt).then((res) => {
+                if (res){
+                    handleLoggedIn()
+                    setEmail(res.email)
 
                 }
             });
         }
     }
 
-    const handleRegister = (password, email) => {
-        Auth.register(password, email)
+    function handleRegister(password, email) {
+        return Auth.register(password, email).then(() => {
+            // error
+            // history.push('/');
+        });
+    }
+
+
+
+
+    function handleLogin(email, password){
+        return Auth.authorize(email, password)
             .then(data => {
-                if (data) {
-                    history.push('/sign-up')
+                if (data.token){
+                    setEmail(email)
+                     localStorage.setItem('token', data.token);
+                    handleLoggedIn();
                 }
             })
-            .catch(err => {
-                console.log(err)
-            })
+
     }
-    const handleLogin = (password, email) => {
-        Auth.authorize(password, email)
-            .then(data => {
-                if (data.token) {
-                    setEmail(email);
-                    localStorage.setItem('token', data.token);
-                    history.push('/')
-                }
-            })
-            .catch(err => {
-                console.log(err)
-            })
-    }
+
 
     return (
         <CurrentUserContext.Provider value={currentUser}>
@@ -167,6 +171,7 @@ function App() {
                     <Header email={email}/>
                     <Switch>
                         <ProtectedRoute exact path='/'
+                                        loggedIn={loggedIn}
                                         component={Main}
                                         onEditProfile={handleEditProfileClick}
                                         onAddPlace={handleAddPlaceClick}
