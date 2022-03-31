@@ -14,6 +14,7 @@ import { Redirect, Route, Switch, useHistory } from "react-router-dom";
 import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
+import InfoTooltip from "./InfoTooltip";
 
 import * as Auth from "../utils/Auth";
 
@@ -33,6 +34,7 @@ function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
   const [isDeleteCardPopupOpen, setIsDeleteCardPopupOpen] = useState(false);
+  const [isInfoTooltip, setInfoTooltip] = useState(false);
 
   const handleEditAvatarClick = () => setIsEditAvatarPopupOpen(true);
   const handleEditProfileClick = () => setIsEditProfilePopupOpen(true);
@@ -47,28 +49,20 @@ function App() {
     setSelectorCard(false);
     setIsEditProfilePopupOpen(false);
     setIsDeleteCardPopupOpen(false);
+    setInfoTooltip(false);
   };
 
+
   React.useEffect(() => {
-    Api.getCards()
-      .then((card) => {
-        setCurrentCard(card);
-      })
-      .catch((err) =>
-        console.log(`Ошибка в app.js при запросе getCards ${err}`)
-      );
+    Promise.all([Api.getCards(), Api.getUserInfo()])
+    .then(([card, res]) => {
+      setCurrentCard(card);
+      setCurrentUser(res);
+    })
+    .catch((err) => console.log(err))
   }, []);
 
-  ///Получение данных пользователя/карточки
-  React.useEffect(() => {
-    Api.getUserInfo()
-      .then((res) => {
-        setCurrentUser(res);
-      })
-      .catch((err) =>
-        console.log(`Ошибка в App.js при запросе getUserInfo ${err}`)
-      );
-  }, []);
+  
 
   React.useEffect(() => {
     tokenCheck();
@@ -136,6 +130,11 @@ function App() {
   //             console.log(err)
   //         })
   // }
+  function handleInfoTooltip(result) {
+    setInfoTooltip(true)
+  }
+
+
   function tokenCheck() {
     if (localStorage.getItem("token")) {
       const jwt = localStorage.getItem("token");
@@ -162,9 +161,14 @@ function App() {
         setEmail(email);
         localStorage.setItem("token", data.token);
         handleLoggedIn();
+        handleInfoTooltip(false)
         history.push("/");
       }
-    });
+    })
+    .catch(err => {
+      console.log(err)
+      handleInfoTooltip(false);
+    })
   }
   function handleSignOut() {
     localStorage.removeItem("token");
@@ -231,6 +235,8 @@ function App() {
             onClose={closeAllPopups}
             onDeleteCard={() => handleCardDelete(cardToDelete)}
           />
+
+          <InfoTooltip result={isInfoTooltip} onClose={closeAllPopups} />
 
           <ImagePopup card={selectorCard} onClose={closeAllPopups} />
         </div>
