@@ -1,7 +1,6 @@
 import React from "react";
 import headerLogo from "../images/logo-mesto.svg";
-import { Link, Route } from "react-router-dom";
-import { Switch } from "react-router-dom";
+import { Link, Route, Switch } from "react-router-dom";
 
 function Header({ email, onSignOut }) {
   return (

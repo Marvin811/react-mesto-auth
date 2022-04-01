@@ -5,9 +5,10 @@ import useEscapeClose from "../hooks/useEscapeClose";
 function ImagePopup(props) {
     useEscapeClose(props.card, props.onClose);
     return (
-        <div className={props.card ?
-            'popup popup_type_image popup_is-opened'
-            : 'popup popup_type_image'}>
+        <div className={props.isOpen ?
+            `popup popup_type_${props.name} popup_is-opened`
+            : `popup popup_type_${props.name}`}
+        >
             <div
                 className="popup__overlay"
                 onClick={props.onClose}

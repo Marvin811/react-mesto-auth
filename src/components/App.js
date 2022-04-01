@@ -15,6 +15,8 @@ import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
 import InfoTooltip from "./InfoTooltip";
+import success from "../images/success.svg";
+import unSuccess from "../images/unSuccess.svg";
 
 import * as Auth from "../utils/Auth";
 
@@ -25,6 +27,7 @@ function App() {
   const history = useHistory();
   const [loggedIn, setLoggetIn] = useState(false);
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState({imageTooltip:'', titleTooltip:''})
 
   const [cardToDelete, setCardToDelete] = useState();
 
@@ -40,6 +43,7 @@ function App() {
   const handleEditProfileClick = () => setIsEditProfilePopupOpen(true);
   const handleAddPlaceClick = () => setIsAddPlacePopupOpen(true);
   const handleLoggedIn = () => setLoggetIn(true);
+  const handleIsInfoTooltip = () => setInfoTooltip(true);
 
   const handleCardClick = (card) => setSelectorCard(card);
 
@@ -52,17 +56,14 @@ function App() {
     setInfoTooltip(false);
   };
 
-
   React.useEffect(() => {
     Promise.all([Api.getCards(), Api.getUserInfo()])
-    .then(([card, res]) => {
-      setCurrentCard(card);
-      setCurrentUser(res);
-    })
-    .catch((err) => console.log(err))
+      .then(([card, res]) => {
+        setCurrentCard(card);
+        setCurrentUser(res);
+      })
+      .catch((err) => console.log(err));
   }, []);
-
-  
 
   React.useEffect(() => {
     tokenCheck();
@@ -124,16 +125,6 @@ function App() {
     setIsDeleteCardPopupOpen(true);
     setCardToDelete(card);
   };
-  // const handleRegister = (password, email) => {
-  //     return Auth.register(password, email)
-  //         .catch(err => {
-  //             console.log(err)
-  //         })
-  // }
-  function handleInfoTooltip(result) {
-    setInfoTooltip(true)
-  }
-
 
   function tokenCheck() {
     if (localStorage.getItem("token")) {
@@ -149,26 +140,29 @@ function App() {
   }
 
   function handleRegister(password, email) {
-    return Auth.register(password, email).then(() => {
-      // error
-      history.push("/sign-in");
-    });
+    return Auth.register(password, email)
+      .then(() => {
+        setEmail(email)
+        history.push("/sign-in");
+        setMessage({imageTooltip: success, titleTooltip: 'Вы успешно зарегистрировались!'})
+      })
+      .catch(() => setMessage({imageTooltip: unSuccess, titleTooltip: 'Что-то пошло не так! Попробуйте ещё раз.'}))
+      .finally(() => setInfoTooltip(true));
   }
 
   function handleLogin(email, password) {
-    return Auth.authorize(email, password).then((data) => {
-      if (data.token) {
-        setEmail(email);
-        localStorage.setItem("token", data.token);
-        handleLoggedIn();
-        handleInfoTooltip(false)
-        history.push("/");
-      }
-    })
-    .catch(err => {
-      console.log(err)
-      handleInfoTooltip(false);
-    })
+    return Auth.authorize(email, password)
+      .then((data) => {
+        if (data.token) {
+          setEmail(email);
+          localStorage.setItem("token", data.token);
+          handleLoggedIn();
+          history.push("/");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
   function handleSignOut() {
     localStorage.removeItem("token");
@@ -236,7 +230,13 @@ function App() {
             onDeleteCard={() => handleCardDelete(cardToDelete)}
           />
 
-          <InfoTooltip result={isInfoTooltip} onClose={closeAllPopups} />
+          <InfoTooltip 
+          name='tooltip'
+          isOpen={isInfoTooltip} 
+          onClose={closeAllPopups}
+          imageTooltip={message.imageTooltip}
+          titleTooltip={message.titleTooltip}
+          />
 
           <ImagePopup card={selectorCard} onClose={closeAllPopups} />
         </div>
