@@ -39,7 +39,7 @@ function Register({onRegister}) {
                         className='entrance__input'
                         required
                         name='password'
-                        type='text'
+                        type='password'
                         placeholder="Пароль"/>
                     <button className="button entrance__save-button" type="submit">Зарегистрироваться</button>
                     <Link to='sign-in' className='entrance__link'>Уже зарегистрированы? Войти</Link>

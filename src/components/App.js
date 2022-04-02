@@ -27,7 +27,10 @@ function App() {
   const history = useHistory();
   const [loggedIn, setLoggetIn] = useState(false);
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState({imageTooltip:'', titleTooltip:''})
+  const [message, setMessage] = useState({
+    imageTooltip: "",
+    titleTooltip: "",
+  });
 
   const [cardToDelete, setCardToDelete] = useState();
 
@@ -57,17 +60,19 @@ function App() {
   };
 
   React.useEffect(() => {
+    if (loggedIn) {
     Promise.all([Api.getCards(), Api.getUserInfo()])
       .then(([card, res]) => {
         setCurrentCard(card);
         setCurrentUser(res);
       })
       .catch((err) => console.log(err));
-  }, []);
+    }
+  }, [loggedIn]);
 
   React.useEffect(() => {
     tokenCheck();
-  }, [history]);
+  }, []);
 
   const handleCardLike = (card) => {
     // Снова проверяем, есть ли уже лайк на этой карточке
@@ -129,25 +134,36 @@ function App() {
   function tokenCheck() {
     if (localStorage.getItem("token")) {
       const jwt = localStorage.getItem("token");
-      Auth.getContent(jwt).then((res) => {
-        if (res) {
-          handleLoggedIn();
-          setEmail(res.email);
-          history.push("/");
-        }
-      });
+      Auth.getContent(jwt)
+        .then((res) => {
+          if (res) {
+            handleLoggedIn();
+            setEmail(res.data.email);
+            history.push("/");
+          }
+        })
+        .catch((err) => console.log(err));
     }
   }
 
   function handleRegister(password, email) {
     return Auth.register(password, email)
       .then(() => {
-        setEmail(email)
+        setEmail(email);
         history.push("/sign-in");
-        setMessage({imageTooltip: success, titleTooltip: 'Вы успешно зарегистрировались!'})
+        setInfoTooltip(true);
+        setMessage({
+          imageTooltip: success,
+          titleTooltip: "Вы успешно зарегистрировались!",
+        });
       })
-      .catch(() => setMessage({imageTooltip: unSuccess, titleTooltip: 'Что-то пошло не так! Попробуйте ещё раз.'}))
-      .finally(() => setInfoTooltip(true));
+      .catch(() =>
+      setInfoTooltip(true),
+        setMessage({
+          imageTooltip: unSuccess,
+          titleTooltip: "Что-то пошло не так! Попробуйте ещё раз.",
+        })
+      )
   }
 
   function handleLogin(email, password) {
@@ -155,14 +171,24 @@ function App() {
       .then((data) => {
         if (data.token) {
           setEmail(email);
+          setInfoTooltip(false);
+          setMessage({
+            imageTooltip: success,
+            titleTooltip: "Вы успешно вошли!",
+          });
           localStorage.setItem("token", data.token);
           handleLoggedIn();
           history.push("/");
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => 
+      console.log(err),
+      setInfoTooltip(true),
+        setMessage({
+          imageTooltip: unSuccess,
+          titleTooltip: "Что-то пошло не так! Попробуйте ещё раз.",
+        })
+      )
   }
   function handleSignOut() {
     localStorage.removeItem("token");
@@ -230,12 +256,12 @@ function App() {
             onDeleteCard={() => handleCardDelete(cardToDelete)}
           />
 
-          <InfoTooltip 
-          name='tooltip'
-          isOpen={isInfoTooltip} 
-          onClose={closeAllPopups}
-          imageTooltip={message.imageTooltip}
-          titleTooltip={message.titleTooltip}
+          <InfoTooltip
+            name="tooltip"
+            isOpen={isInfoTooltip}
+            onClose={closeAllPopups}
+            imageTooltip={message.imageTooltip}
+            titleTooltip={message.titleTooltip}
           />
 
           <ImagePopup card={selectorCard} onClose={closeAllPopups} />
